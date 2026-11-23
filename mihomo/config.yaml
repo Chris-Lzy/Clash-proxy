@@ -1,0 +1,44 @@
+port: 7890
+socks-port: 7891
+allow-lan: true
+bind-address: '*'
+mode: rule
+log-level: info
+external-controller: '0.0.0.0:9090'
+secret: 'change-me-please'
+ipv6: false
+
+proxy-providers:
+  sub:
+    type: http
+    url: 'https://example.com/api/v1/client/subscribe?token=REPLACE_ME'
+    interval: 86400
+    path: ./sub_provider.yaml
+    size-limit: 0
+    health-check:
+      enable: true
+      interval: 1800
+      lazy: true
+      url: https://www.gstatic.com/generate_204
+
+proxy-groups:
+  - name: 'PROXY'
+    type: select
+    proxies:
+      - 'AUTO'
+      - 'MANUAL'
+      - DIRECT
+  - name: 'AUTO'
+    type: url-test
+    use:
+      - sub
+    url: https://www.gstatic.com/generate_204
+    interval: 600
+    tolerance: 100
+  - name: 'MANUAL'
+    type: select
+    use:
+      - sub
+
+rules:
+  - MATCH,PROXY

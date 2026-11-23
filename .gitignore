@@ -1,0 +1,15 @@
+# 本地环境配置（含订阅链接，切勿提交）
+.env
+
+# 运行时数据
+data/
+*.db
+
+# mihomo 拉取的订阅缓存与运行日志
+mihomo/sub*.yaml
+mihomo/*.log
+
+# Python / 系统文件
+__pycache__/
+*.pyc
+.DS_Store

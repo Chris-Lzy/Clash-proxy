@@ -1,0 +1,33 @@
+services:
+  mihomo:
+    image: metacubex/mihomo:latest
+    container_name: fnos-mihomo
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "7890:7890"
+      - "7891:7891"
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - ./mihomo:/root/.config/mihomo
+    environment:
+      - TZ=Asia/Shanghai
+
+  dashboard:
+    image: python:3.11-alpine
+    container_name: fnos-proxy-dashboard
+    restart: unless-stopped
+    command: python /app/app.py
+    ports:
+      - "8099:8000"
+    volumes:
+      - ./dashboard:/app:ro
+      - ./data:/data
+      - ./mihomo:/mihomo
+    depends_on:
+      - mihomo
+    environment:
+      - TZ=Asia/Shanghai
+      - MIHOMO_SECRET=${MIHOMO_SECRET:-change-me-please}
+      - INIT_SUB_URL=${INIT_SUB_URL:-}

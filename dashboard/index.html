@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>代理控制台</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--txt:#1a1d21;--sub:#6b7280;--line:#e5e7eb;--on:#e0483d;--off:#9ca3af;--green:#14936a;--blue:#2563eb}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--txt);padding:24px;line-height:1.6}
+.wrap{max-width:1080px;margin:0 auto}
+h1{font-size:22px;font-weight:600;margin-bottom:4px}
+.subtitle{color:var(--sub);font-size:13px;margin-bottom:22px}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+.col-8{grid-column:span 8}.col-4{grid-column:span 4}.col-12{grid-column:span 12}.col-6{grid-column:span 6}
+.card h2{font-size:14px;font-weight:600;color:var(--sub);margin-bottom:16px;display:flex;align-items:center;gap:8px;justify-content:space-between}
+.card h2 .h2a{display:flex;gap:8px;align-items:center}
+.switch-card{display:flex;flex-direction:column;justify-content:space-between}
+.sw-row{display:flex;align-items:center;justify-content:space-between}
+.status{display:flex;align-items:center;gap:10px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--off)}
+.dot.on{background:var(--green);box-shadow:0 0 0 4px rgba(20,147,106,.15)}
+.status-txt{font-size:15px;font-weight:600}
+.btn{border:none;border-radius:10px;padding:12px 22px;font-size:15px;font-weight:600;cursor:pointer;color:#fff;transition:.2s}
+.btn.on{background:var(--off)}.btn.off{background:var(--on)}
+.btn:active{transform:scale(.97)}
+.btn-sm{background:#eef1f5;color:var(--txt);padding:6px 12px;font-size:12px;border-radius:8px;font-weight:500;cursor:pointer;border:none}
+.btn-sm:hover{background:#e2e6ec}
+.btn-sm.primary{background:var(--blue);color:#fff}
+.btn-sm.danger{background:#fdecec;color:var(--on)}
+.btn-sm.danger:hover{background:#fbdada}
+.btn-sm:disabled{opacity:.5;cursor:not-allowed}
+.meta{font-size:12px;color:var(--sub);margin-top:14px;line-height:1.9}
+.meta b{color:var(--txt);font-weight:600}
+.speed{display:flex;gap:28px}
+.speed div{flex:1}
+.speed .label{font-size:12px;color:var(--sub)}
+.speed .val{font-size:26px;font-weight:600;margin-top:2px}
+.speed .up{color:var(--blue)}.speed .down{color:var(--green)}
+.stats{display:flex;gap:16px;flex-wrap:wrap}
+.stat{flex:1;min-width:120px;background:#f8f9fb;border-radius:10px;padding:14px}
+.stat .label{font-size:12px;color:var(--sub)}
+.stat .val{font-size:20px;font-weight:600;margin-top:4px}
+.bars{display:flex;align-items:flex-end;gap:8px;height:140px;margin-top:8px}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.bar{width:100%;max-width:42px;background:var(--green);border-radius:5px 5px 0 0;min-height:2px;transition:height .4s}
+.bar-label{font-size:10px;color:var(--sub);white-space:nowrap}
+.bar-val{font-size:10px;color:var(--txt);font-weight:600}
+.sub{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:10px}
+.sub.off{opacity:.55}
+.sub-main{flex:1;min-width:0}
+.sub-name{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+.sub-url{font-size:11px;color:var(--sub);margin-top:5px;word-break:break-all;max-width:560px}
+.sub-stat{font-size:12px;color:var(--sub);margin-top:8px;display:flex;gap:16px;flex-wrap:wrap}
+.sub-stat b{color:var(--txt);font-weight:600}
+.sub-ops{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.tag{font-size:11px;padding:2px 7px;border-radius:5px;background:#eef1f5;color:var(--sub);margin-left:8px}
+.tag.good{background:#e6f6ef;color:var(--green)}
+.tag.off{background:#f0f1f3;color:var(--sub)}
+.add-box{border-top:1px dashed var(--line);margin-top:6px;padding-top:16px}
+.add-row{display:flex;gap:8px;flex-wrap:wrap}
+input[type=text]{border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:13px;outline:none;background:#fff;color:var(--txt)}
+input[type=text]:focus{border-color:var(--blue)}
+.in-name{width:150px}.in-url{flex:1;min-width:240px}
+.nodes{display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto}
+.node{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border:1px solid var(--line);border-radius:9px;cursor:pointer;font-size:13px;transition:.15s}
+.node:hover{border-color:var(--blue);background:#f8faff}
+.node .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.node .delay{font-size:12px;color:var(--sub);margin-left:10px}
+.src{font-size:10px;padding:2px 6px;border-radius:4px;background:#eef4ff;color:var(--blue);margin-left:8px;white-space:nowrap}
+.event{display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid #f0f1f3}
+.event:last-child{border:none}
+.event .t{color:var(--sub)}
+.event .d{color:var(--txt)}
+.note{font-size:12px;color:var(--sub);margin-top:12px;line-height:1.8}
+.loading{color:var(--sub);font-size:13px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1d21;color:#fff;padding:12px 22px;border-radius:10px;font-size:13px;z-index:99;opacity:0;transition:.25s;pointer-events:none}
+.toast.show{opacity:1}
+.toast.err{background:var(--on)}
+@media(max-width:760px){.col-8,.col-4,.col-6{grid-column:span 12}.sub{flex-direction:column}.sub-ops{justify-content:flex-start}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>代理控制台</h1>
+  <div class="subtitle">飞牛 NAS · mihomo 代理服务管理</div>
+  <div class="grid">
+
+    <div class="card col-4 switch-card">
+      <div>
+        <h2>总开关</h2>
+        <div class="sw-row">
+          <div class="status">
+            <span class="dot" id="dot"></span>
+            <span class="status-txt" id="statusTxt">加载中…</span>
+          </div>
+        </div>
+        <div class="meta" id="switchMeta"></div>
+      </div>
+      <button class="btn on" id="switchBtn" style="width:100%;margin-top:20px" onclick="toggleSwitch()">加载中…</button>
+    </div>
+
+    <div class="card col-8">
+      <h2>实时网速</h2>
+      <div class="speed">
+        <div><div class="label">下载 ↓</div><div class="val down" id="downSpeed">0 B/s</div></div>
+        <div><div class="label">上传 ↑</div><div class="val up" id="upSpeed">0 B/s</div></div>
+      </div>
+      <div class="stats" style="margin-top:22px">
+        <div class="stat"><div class="label">今日使用时长</div><div class="val" id="todayActive">0 分钟</div></div>
+        <div class="stat"><div class="label">今日下载</div><div class="val" id="todayDown">0 B</div></div>
+        <div class="stat"><div class="label">今日上传</div><div class="val" id="todayUp">0 B</div></div>
+        <div class="stat"><div class="label">累计下载</div><div class="val" id="totalDown">0 B</div></div>
+        <div class="stat"><div class="label">累计上传</div><div class="val" id="totalUp">0 B</div></div>
+      </div>
+    </div>
+
+    <div class="card col-12">
+      <h2><span class="h2a">订阅管理 <span class="tag" id="subTotal"></span></span>
+        <button class="btn btn-sm" onclick="refreshAll()">全部更新</button>
+      </h2>
+      <div id="subList"><div class="loading">加载中…</div></div>
+      <div class="add-box">
+        <div style="font-size:13px;font-weight:600;margin-bottom:10px">添加新订阅</div>
+        <div class="add-row">
+          <input type="text" class="in-name" id="newName" placeholder="名称，如：订阅 2">
+          <input type="text" class="in-url" id="newUrl" placeholder="粘贴订阅链接 https://...">
+          <button class="btn btn-sm primary" id="addBtn" onclick="addSub()">添加</button>
+        </div>
+        <div class="note">添加后会自动拉取节点并热重载代理，无需重启。可随时停用或删除。</div>
+      </div>
+    </div>
+
+    <div class="card col-6">
+      <h2><span class="h2a">近 7 天流量</span>
+        <button class="btn btn-sm" id="speedBtn" onclick="speedTest()">节点测速</button>
+      </h2>
+      <div class="bars" id="bars"></div>
+      <div class="note" id="speedNote" style="margin-top:10px">节点延迟默认未测，点"节点测速"检测全部节点的响应速度。</div>
+    </div>
+
+    <div class="card col-6">
+      <h2>节点选择 <span class="tag" id="nodeCount"></span></h2>
+      <div class="row" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <button class="btn btn-sm" onclick="switchAuto()">自动(最快)</button>
+        <span class="note" style="margin:0">或点选下方节点手动指定；标签为所属订阅</span>
+      </div>
+      <div class="nodes" id="nodes"><div class="loading">加载中…</div></div>
+    </div>
+
+    <div class="card col-12">
+      <h2>使用记录</h2>
+      <div id="events"><div class="loading">加载中…</div></div>
+      <div class="note">记录开关、订阅增删、切换节点、更新订阅等操作。流量数据每 5 秒采样一次，存于本机数据库。</div>
+    </div>
+
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+function fmtB(n){n=Number(n)||0;const u=['B','KB','MB','GB','TB'];let i=0;while(n>=1024&&i<u.length-1){n/=1024;i++}return (i===0?Math.round(n):n.toFixed(1))+' '+u[i]}
+function toast(msg,err){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(err?' err':'');setTimeout(()=>t.className='toast',2600)}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+let curSwitch=false, autoNow=false, subMap={};
+
+function subNameOf(pid){return subMap[pid]||pid}
+
+async function loadOverview(){
+  try{
+    const o=await (await fetch('/api/overview')).json();
+    curSwitch=!!o.switch_on; autoNow=o.current==='AUTO';
+    document.getElementById('dot').className='dot'+(o.online&&curSwitch?' on':'');
+    document.getElementById('statusTxt').textContent=!o.online?'内核离线':(curSwitch?'代理已开启':'代理已关闭(直连)');
+    const btn=document.getElementById('switchBtn');
+    btn.textContent=curSwitch?'关闭代理':'开启代理';
+    btn.className='btn '+(curSwitch?'off':'on');
+    document.getElementById('switchMeta').innerHTML=
+      '当前模式：<b>'+esc(o.mode||'-')+'</b><br>出口策略：<b>'+esc(o.current||'-')+'</b><br>内核版本：<b>'+esc(o.version||'-')+'</b><br>节点总数：<b>'+(o.node_count||0)+'</b>';
+
+    // sub map + list
+    subMap={}; (o.subs||[]).forEach(s=>subMap['sub_'+s.id]=s.name);
+    document.getElementById('subTotal').textContent=(o.subs||[]).length+' 个订阅';
+    const sl=document.getElementById('subList');
+    if(o.subs&&o.subs.length){
+      sl.innerHTML=o.subs.map(s=>{
+        let st='';
+        if(s.total)st+='总量 <b>'+fmtB(s.total)+'</b>　';
+        if(s.download!==undefined)st+='已用 <b>'+fmtB((s.download||0)+(s.upload||0))+'</b>　';
+        if(s.expire)st+='到期 <b>'+new Date(s.expire*1000).toLocaleDateString('zh-CN')+'</b>　';
+        if(s.updatedAt)st+='更新 '+(isNaN(s.updatedAt)?esc(String(s.updatedAt).slice(5,16).replace('T',' ')):new Date(s.updatedAt*1000).toLocaleString('zh-CN'));
+        st+='　节点 <b>'+(s.node_count||0)+'</b>';
+        return '<div class="sub '+(s.enabled?'':'off')+'">'+
+          '<div class="sub-main">'+
+            '<div class="sub-name">'+esc(s.name)+
+              '<span class="tag '+(s.enabled?'good':'off')+'">'+(s.enabled?'已启用':'已停用')+'</span></div>'+
+            '<div class="sub-url">'+esc(s.url)+'</div>'+
+            '<div class="sub-stat">'+st+'</div>'+
+          '</div>'+
+          '<div class="sub-ops">'+
+            '<button class="btn btn-sm" onclick="refreshSub('+s.id+')">更新</button>'+
+            '<button class="btn btn-sm" onclick="toggleSub('+s.id+','+(!s.enabled)+')">'+(s.enabled?'停用':'启用')+'</button>'+
+            '<button class="btn btn-sm danger" onclick="deleteSub('+s.id+',\''+esc(s.name).replace(/'/g,"")+'\')">删除</button>'+
+          '</div>'+
+        '</div>';
+      }).join('');
+    }else{sl.innerHTML='<div class="loading">还没有订阅，请在下方添加</div>'}
+
+    // nodes
+    document.getElementById('nodeCount').textContent=(o.nodes||[]).length+' 个';
+    const nl=document.getElementById('nodes');
+    if(o.nodes&&o.nodes.length){
+      nl.innerHTML=o.nodes.map(n=>{
+        const cls=n.delay>0&&n.delay<500?'good':'';
+        return '<div class="node" onclick="selectNode('+JSON.stringify(n.name).replace(/"/g,'&quot;')+')">'+
+          '<span class="name">'+esc(n.name)+'</span>'+
+          '<span class="src">'+esc(subNameOf(n.provider))+'</span>'+
+          '<span class="delay">'+(n.delay>0?n.delay+' ms':'未测')+'</span>'+
+          '<span class="tag '+cls+'">'+(n.alive?'可用':'未知')+'</span></div>';
+      }).join('');
+    }else{nl.innerHTML='<div class="loading">暂无节点，请检查订阅</div>'}
+  }catch(e){}
+}
+
+async function loadTraffic(){
+  try{
+    const t=await (await fetch('/api/traffic')).json();
+    document.getElementById('downSpeed').textContent=fmtB(t.down)+'/s';
+    document.getElementById('upSpeed').textContent=fmtB(t.up)+'/s';
+    document.getElementById('totalDown').textContent=fmtB(t.downTotal);
+    document.getElementById('totalUp').textContent=fmtB(t.upTotal);
+  }catch(e){}
+}
+
+async function loadStats(){
+  try{
+    const s=await (await fetch('/api/stats')).json();
+    document.getElementById('todayDown').textContent=fmtB(s.today_down);
+    document.getElementById('todayUp').textContent=fmtB(s.today_up);
+    const mins=Math.round((s.today_active||0)/60);
+    document.getElementById('todayActive').textContent=mins>=60?(Math.floor(mins/60)+'小时'+(mins%60)+'分'):(mins+' 分钟');
+    const mx=Math.max(1,...s.last7.map(x=>x.up+x.down));
+    document.getElementById('bars').innerHTML=s.last7.map(x=>{
+      const tot=x.up+x.down;const h=Math.max(2,Math.round(tot/mx*110));
+      const tip=x.day+' · 流量 '+fmtB(tot)+' · 活跃 '+Math.round((x.active||0)/60)+' 分钟';
+      return '<div class="bar-wrap" title="'+tip+'"><div class="bar-val">'+(tot>0?fmtB(tot):'')+'</div>'+
+        '<div class="bar" style="height:'+h+'px"></div>'+
+        '<div class="bar-label">'+x.day.slice(5)+'</div></div>';
+    }).join('');
+    const activeRows=s.last7.filter(x=>x.active>0).map(x=>'<div class="event"><span class="t">'+x.day+'</span><span class="d">有流量 '+Math.max(1,Math.round(x.active/60))+' 分钟 · '+fmtB(x.up+x.down)+'</span></div>').join('');
+    const evHtml=(activeRows?'<div style="font-size:12px;color:var(--sub);margin-bottom:6px">每日在线</div>'+activeRows:'')+
+      (s.events.length?'<div style="font-size:12px;color:var(--sub);margin:10px 0 6px">操作记录</div>'+s.events.map(e=>'<div class="event"><span class="t">'+e.time+'</span><span class="d">'+esc(e.detail)+'</span></div>').join(''):'');
+    document.getElementById('events').innerHTML=evHtml||'<div class="loading">暂无记录</div>';
+  }catch(e){}
+}
+
+async function post(url,body){return (await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined})).json()}
+
+async function toggleSwitch(){await post('/api/switch',{on:!curSwitch});setTimeout(loadOverview,400)}
+async function selectNode(name){if(!confirm('切换到节点：'+name+'？'))return;await post('/api/node',{name});setTimeout(loadOverview,600)}
+async function switchAuto(){await post('/api/auto');setTimeout(loadOverview,500)}
+async function refreshSub(id){toast('正在更新订阅…');await post('/api/refresh',{id});setTimeout(()=>{toast('订阅已更新');loadOverview()},1800)}
+async function refreshAll(){toast('正在更新全部订阅…');await post('/api/refresh',{});setTimeout(()=>{toast('全部订阅已更新');loadOverview()},2000)}
+async function speedTest(){
+  const b=document.getElementById('speedBtn');b.disabled=true;b.textContent='测速中…';
+  document.getElementById('speedNote').textContent='正在检测全部节点，可能需要 10~30 秒…';
+  try{
+    const r=await post('/api/speedtest',{});
+    document.getElementById('speedNote').textContent=r.ok?('测速完成，'+r.tested+' 个节点有响应'):'测速失败，请稍后重试';
+    toast(r.ok?'测速完成':'测速失败',!r.ok);
+  }catch(e){document.getElementById('speedNote').textContent='测速失败';toast('测速失败',true)}
+  b.disabled=false;b.textContent='节点测速';
+  loadOverview();
+}
+
+async function addSub(){
+  const name=document.getElementById('newName').value.trim();
+  const url=document.getElementById('newUrl').value.trim();
+  if(!url){toast('请填写订阅链接',true);return}
+  const b=document.getElementById('addBtn');b.disabled=true;b.textContent='添加中…';
+  const r=await post('/api/subs/add',{name,url});
+  b.disabled=false;b.textContent='添加';
+  if(!r.ok){toast(r.error||'添加失败',true);return}
+  document.getElementById('newName').value='';document.getElementById('newUrl').value='';
+  toast('订阅已添加，正在加载节点…');
+  setTimeout(loadOverview,3500);
+}
+async function deleteSub(id,name){
+  if(!confirm('确认删除订阅「'+name+'」？该订阅的节点将不再可用。'))return;
+  const r=await post('/api/subs/delete',{id});
+  toast(r.ok?'已删除':'删除失败',!r.ok);setTimeout(loadOverview,2500);
+}
+async function toggleSub(id,enabled){
+  const r=await post('/api/subs/toggle',{id,enabled});
+  toast(r.ok?(enabled?'已启用':'已停用'):'操作失败',!r.ok);setTimeout(loadOverview,2500);
+}
+
+loadOverview();loadTraffic();loadStats();
+setInterval(loadTraffic,2000);setInterval(loadOverview,12000);setInterval(loadStats,15000);
+</script>
+</body>
+</html>
